@@ -33,6 +33,7 @@ public class PlayerEvent implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         players.add(player);
+        isSleeps.put(player.getName(), false);
         setAwake(player);
     }
 
