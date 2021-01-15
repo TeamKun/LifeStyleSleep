@@ -34,8 +34,8 @@ public final class LifeStyle extends JavaPlugin{
                     TextComponent component = new TextComponent();
                     component.setText(nowTime.get(0) + "時" + nowTime.get(1) + "分");
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
-                    int sleepTime = sleep.getScore(player.getName()).getScore();
-                    int awakeTime = awake.getScore(player.getName()).getScore();
+                    int sleepTime = sleep == null ? 22 : sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
+                    int awakeTime = awake == null ? 7 : awake.getScore(player.getName()) == null ? 7 : awake.getScore(player.getName()).getScore();
                     if(nowTime.get(0) == sleepTime) {
                         playerEvent.setSleep(player);
                         return;

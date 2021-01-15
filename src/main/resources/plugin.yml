@@ -1,4 +1,4 @@
 name: LifeStyle
 version: ${project.version}
 main: com.github.tomodq.lifestyle.LifeStyle
-api-version: 1.16
+api-version: 1.15

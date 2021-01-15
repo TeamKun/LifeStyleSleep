@@ -8,14 +8,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.*;
 
@@ -65,7 +63,7 @@ public class PlayerEvent implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         Boolean isSleep = isSleeps.get(player.getName());
-        if(isSleep) {
+        if(isSleep != null && isSleep) {
             event.setCancelled(true);
         }
     }
@@ -74,7 +72,7 @@ public class PlayerEvent implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Boolean isSleep = isSleeps.get(player.getName());
-        if(isSleep) {
+        if(isSleep != null && isSleep) {
             event.setCancelled(true);
         }
     }
@@ -105,6 +103,17 @@ public class PlayerEvent implements Listener {
         }
     }
 
+    @EventHandler
+    public void onServerLoader(ServerLoadEvent event) {
+        Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+            if(players.contains(player.getPlayer())) {
+                return;
+            }
+            players.add(player);
+            isSleeps.put(player.getName(), false);
+        });
+    }
+
 
     public void setSleep(Player player) {
         isSleeps.put(player.getName(), true);
@@ -117,7 +126,7 @@ public class PlayerEvent implements Listener {
         if(!(player.getPotionEffect(PotionEffectType.CONFUSION) == null)) {
             return;
         }
-        if(isSleep) {
+        if(isSleep != null && isSleep) {
             return;
         }
         player.sendMessage("§1眠たい");
