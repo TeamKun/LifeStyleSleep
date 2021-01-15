@@ -8,6 +8,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -33,11 +34,6 @@ public class PlayerEvent implements Listener {
         Player player = event.getPlayer();
         players.add(player);
         setAwake(player);
-        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        Objective sleepTimeObjective = sb.getObjective(player.getName());
-        if(sleepTimeObjective == null) {
-            sb.registerNewObjective(player.getName(), "dummy", "19,30,5,0");
-        }
     }
 
     @EventHandler
@@ -56,8 +52,12 @@ public class PlayerEvent implements Listener {
         Boolean isSleep = isSleeps.get(player.getName());
         if(isSleep) {
             player.setHealth(0);
-            setAwake(player);
         }
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        setAwake(event.getPlayer());
     }
 
     @EventHandler
@@ -137,14 +137,4 @@ public class PlayerEvent implements Listener {
         return players;
     }
 
-    public List<Integer> getSleepAndAwakeTime(String playerName) {
-        String objectiveDisplayName;
-        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        objectiveDisplayName = sb.getObjective(playerName).getDisplayName();
-        List<Integer> sleepAndAwakeTime = new ArrayList<Integer>();
-        Arrays.stream(objectiveDisplayName.split(",")).mapToInt(Integer::parseInt).forEach(value -> {
-            sleepAndAwakeTime.add(value);
-        });
-        return sleepAndAwakeTime;
-    }
 }
