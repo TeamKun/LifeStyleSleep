@@ -16,7 +16,6 @@ public final class LifeStyle extends JavaPlugin{
     @Override
     public void onEnable() {
         // Plugin startup logic
-        onLoad();
         PlayerEvent playerEvent = new PlayerEvent(this);
         BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
         scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
