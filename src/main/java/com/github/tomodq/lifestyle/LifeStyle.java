@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class LifeStyle extends JavaPlugin{
-
     @Override
     public void onEnable() {
         // Plugin startup logic
+        onLoad();
         PlayerEvent playerEvent = new PlayerEvent(this);
         BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
         scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
@@ -31,28 +31,31 @@ public final class LifeStyle extends JavaPlugin{
                 Objective awake = sb.getObjective("awake");
                 players.forEach(player -> {
                     List<Integer> nowTime = castTime(player.getWorld().getTime());
-                    TextComponent component = new TextComponent();
-                    component.setText(nowTime.get(0) + "時" + nowTime.get(1) + "分");
-                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
                     int sleepTime = sleep == null ? 22 : sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
-                    int awakeTime = awake == null ? 7 : awake.getScore(player.getName()) == null ? 7 : awake.getScore(player.getName()).getScore();
+                    int awakeTime = awake == null ? 5 : awake.getScore(player.getName()) == null ? 5 : awake.getScore(player.getName()).getScore();
                     if(nowTime.get(0) == sleepTime) {
                         playerEvent.setSleep(player);
+                        setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
                         return;
                     }
                     if(nowTime.get(1) == 40) {
                         if(nowTime.get(0) == 23  && sleepTime == 0) {
                             playerEvent.setDizzy(player);
+                            setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
                             return;
                         }
                         if(nowTime.get(0)  == sleepTime - 1) {
                             playerEvent.setDizzy(player);
+                            setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
                             return;
                         }
                     }
                     if(nowTime.get(0) == awakeTime) {
                         playerEvent.setAwake(player);
+                        setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
+                        return;
                     }
+                    setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
                 });
 
             }
@@ -80,6 +83,12 @@ public final class LifeStyle extends JavaPlugin{
         times.add(hours);
         times.add(minutes);
         return times;
+    }
+
+    public void setActionBar(List<Integer> nowTime, String message, Player player) {
+        TextComponent component = new TextComponent();
+        component.setText(nowTime.get(0) + "時" + nowTime.get(1) + "分" + " <" + message +"§f>");
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
     }
 
 

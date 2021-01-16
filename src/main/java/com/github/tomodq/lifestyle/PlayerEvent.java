@@ -20,10 +20,12 @@ import java.util.*;
 public class PlayerEvent implements Listener {
     private List<Player> players;
     private Map<String, Boolean> isSleeps;
+    private Map<String, String> messages;
 
     public PlayerEvent(JavaPlugin plugin) {
         players = new ArrayList<Player>();
         isSleeps = new HashMap<String, Boolean>();
+        messages = new HashMap<String, String>();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -32,6 +34,7 @@ public class PlayerEvent implements Listener {
         Player player = event.getPlayer();
         players.add(player);
         isSleeps.put(player.getName(), false);
+        messages.put(player.getName(), "眠くない");
         setAwake(player);
     }
 
@@ -39,6 +42,7 @@ public class PlayerEvent implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         players.remove(event.getPlayer());
         isSleeps.remove(event.getPlayer().getName());
+        messages.remove(event.getPlayer().getName());
     }
 
     @EventHandler
@@ -59,6 +63,7 @@ public class PlayerEvent implements Listener {
         setAwake(event.getPlayer());
     }
 
+
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -67,6 +72,7 @@ public class PlayerEvent implements Listener {
             event.setCancelled(true);
         }
     }
+
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
@@ -79,7 +85,7 @@ public class PlayerEvent implements Listener {
 
     @EventHandler
     public void onPlayerBedEnter(PlayerBedEnterEvent event) {
-        if(!(event.getPlayer().getPotionEffect(PotionEffectType.CONFUSION) == null) || !(event.getPlayer().getPotionEffect(PotionEffectType.BLINDNESS) == null)) {
+        if(isDizzyOrBlindness(event.getPlayer())) {
             event.setUseBed(Event.Result.ALLOW);
             return;
         }
@@ -87,10 +93,11 @@ public class PlayerEvent implements Listener {
         event.setCancelled(true);
     }
 
+
     @EventHandler
     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
-        if(!(event.getPlayer().getPotionEffect(PotionEffectType.CONFUSION) == null) || !(event.getPlayer().getPotionEffect(PotionEffectType.BLINDNESS) == null)) {
-            event.getPlayer().sleep(event.getBed().getLocation(),true);
+        if(isDizzyOrBlindness(event.getPlayer())) {
+            event.getPlayer().sleep(event.getBed().getLocation(), true);
             return;
         }
         setAwake(event.getPlayer());
@@ -111,12 +118,14 @@ public class PlayerEvent implements Listener {
             }
             players.add(player);
             isSleeps.put(player.getName(), false);
+            messages.put(player.getName(), "眠くない");
         });
     }
 
 
     public void setSleep(Player player) {
         isSleeps.put(player.getName(), true);
+        messages.put(player.getName(), "Zzz");
         player.removePotionEffect(PotionEffectType.CONFUSION);
         setBlindness(player);
     }
@@ -129,7 +138,7 @@ public class PlayerEvent implements Listener {
         if(isSleep != null && isSleep) {
             return;
         }
-        player.sendMessage("§1眠たい");
+        messages.put(player.getName(), "§1眠たい");
         player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION ,1200,0,false));
     }
 
@@ -141,10 +150,19 @@ public class PlayerEvent implements Listener {
         player.removePotionEffect(PotionEffectType.BLINDNESS);
         player.removePotionEffect(PotionEffectType.CONFUSION);
         isSleeps.put(player.getName(), false);
+        messages.put(player.getName(), "眠くない");
     }
 
     public  List<Player> getPlayers() {
         return players;
+    }
+
+    public String getMessage(String name) {
+        return messages.get(name) != null ? messages.get(name) : "眠くない";
+    }
+
+    public boolean isDizzyOrBlindness(Player player) {
+        return !(player.getPotionEffect(PotionEffectType.CONFUSION) == null) || !(player.getPotionEffect(PotionEffectType.BLINDNESS) == null);
     }
 
 }
