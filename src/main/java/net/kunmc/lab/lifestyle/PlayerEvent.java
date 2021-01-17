@@ -129,6 +129,9 @@ public class PlayerEvent implements Listener {
             players.add(player);
             isSleeps.put(player.getName(), false);
             messages.put(player.getName(), "眠くない");
+            if(world == null) {
+                player.getWorld();
+            }
         });
     }
 
@@ -185,7 +188,7 @@ public class PlayerEvent implements Listener {
     }
 
     public void setTime() {
-        if(this.time == 24000L) {
+        if(this.time >= 24000L) {
             this.time = 0L;
             return;
         }
@@ -197,6 +200,6 @@ public class PlayerEvent implements Listener {
     }
 
     public static void setSpeed(Long speed) {
-        add = speed;
+        add = 2L * speed;
     }
 }
