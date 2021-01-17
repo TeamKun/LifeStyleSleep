@@ -6,4 +6,6 @@
 - sleep・awakeオブジェクティブに寝る・起きる時間をそれぞれ登録　　
 - デフォルトは22時~5時  
 - ジョイン・リスポーン・サーバーリロードの時点のみ睡眠時間内であっても無視される  
-- 時間を加速させたい場合は[TimeManagerプラグイン](https://github.com/ArVdC/TimeManager)を推奨  
+- 時間を加速させたい場合は以下のコマンドを使用  
+    - /<speed-up> [stop, default, high, ultra]
+    - それぞれ0倍, 1倍, 2倍, 10倍

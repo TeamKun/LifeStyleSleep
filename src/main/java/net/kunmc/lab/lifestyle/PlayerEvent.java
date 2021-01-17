@@ -1,6 +1,8 @@
-package com.github.tomodq.lifestyle;
+package net.kunmc.lab.lifestyle;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -21,11 +23,16 @@ public class PlayerEvent implements Listener {
     private List<Player> players;
     private Map<String, Boolean> isSleeps;
     private Map<String, String> messages;
+    private Long time;
+    private World world;
+
+    private static Long add = 2L;
 
     public PlayerEvent(JavaPlugin plugin) {
         players = new ArrayList<Player>();
         isSleeps = new HashMap<String, Boolean>();
         messages = new HashMap<String, String>();
+        time = 0L;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -36,6 +43,9 @@ public class PlayerEvent implements Listener {
         isSleeps.put(player.getName(), false);
         messages.put(player.getName(), "眠くない");
         setAwake(player);
+        if(players.size() == 1) {
+            world = player.getWorld();
+        }
     }
 
     @EventHandler
@@ -128,6 +138,10 @@ public class PlayerEvent implements Listener {
         messages.put(player.getName(), "Zzz");
         player.removePotionEffect(PotionEffectType.CONFUSION);
         setBlindness(player);
+        if(!player.isSleeping()) {
+            player.getLocation().getBlock().setType(Material.BLACK_BED);
+            player.sleep(player.getLocation(), true);
+        }
     }
 
     public void setDizzy(Player player) {
@@ -140,6 +154,7 @@ public class PlayerEvent implements Listener {
         }
         messages.put(player.getName(), "§1眠たい");
         player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION ,1200,0,false));
+        //player.setPlayerTime(0,false);
     }
 
     public void  setBlindness(Player player) {
@@ -165,4 +180,23 @@ public class PlayerEvent implements Listener {
         return !(player.getPotionEffect(PotionEffectType.CONFUSION) == null) || !(player.getPotionEffect(PotionEffectType.BLINDNESS) == null);
     }
 
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime() {
+        if(this.time == 24000L) {
+            this.time = 0L;
+            return;
+        }
+        this.time += add;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public static void setSpeed(Long speed) {
+        add = speed;
+    }
 }

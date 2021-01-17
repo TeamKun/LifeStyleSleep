@@ -1,8 +1,11 @@
-package com.github.tomodq.lifestyle;
+package net.kunmc.lab.lifestyle;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -10,6 +13,8 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class LifeStyle extends JavaPlugin{
@@ -22,16 +27,22 @@ public final class LifeStyle extends JavaPlugin{
             @Override
             public void run() {
                 List<Player> players = playerEvent.getPlayers();
-                if(players.size() == 0) {
+                World world = playerEvent.getWorld() != null ? playerEvent.getWorld() : null;
+                if(players.size() == 0 || world == null) {
                     return;
                 }
+                world.setTime(14000L);
                 Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
                 Objective sleep = sb.getObjective("sleep");
                 Objective awake = sb.getObjective("awake");
                 players.forEach(player -> {
-                    List<Integer> nowTime = castTime(player.getWorld().getTime());
-                    int sleepTime = sleep == null ? 22 : sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
+                    //List<Integer> serverTime = castTime(player.getWorld().getTime());
+                    //player.sendMessage("サーバ: "+ serverTime.get(0) + "時" + serverTime2.get(1) + "分");
+                    List<Integer> nowTime = castTime(playerEvent.getTime());
+                    player.setPlayerTime(playerEvent.getTime(), false);
+                    int sleepTime = sleep == null ? 22: sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
                     int awakeTime = awake == null ? 5 : awake.getScore(player.getName()) == null ? 5 : awake.getScore(player.getName()).getScore();
+                    playerEvent.setTime();
                     if(nowTime.get(0) == sleepTime) {
                         playerEvent.setSleep(player);
                         setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
@@ -90,10 +101,61 @@ public final class LifeStyle extends JavaPlugin{
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
     }
 
-
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
+        if (cmd.getName().equalsIgnoreCase("speed-up")) {
+            if (args.length == 0 || args.length > 1) {
+                return false;
+            }
+            if (args[0].equalsIgnoreCase("stop")) {
+                PlayerEvent.setSpeed(0L);
+                return true;
+            }
+            if (args[0].equalsIgnoreCase("default")) {
+                PlayerEvent.setSpeed(2L);
+                return true;
+            }
+            if (args[0].equalsIgnoreCase("high")) {
+                PlayerEvent.setSpeed(4L);
+                return true;
+            }
+            if (args[0].equalsIgnoreCase("ultra")) {
+                PlayerEvent.setSpeed(20L);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
+        if(!cmd.getName().equalsIgnoreCase("speed-up")) {
+            return super.onTabComplete(sender, cmd, alias, args);
+        }
+        if(args.length == 1) {
+            if(args[0].length() == 0) {
+                return Arrays.asList("stop", "default", "high", "ultra");
+            } else {
+                if("stop".startsWith(args[0])) {
+                    return Collections.singletonList("stop");
+                }
+                if("default".startsWith(args[0])) {
+                    return Collections.singletonList("default");
+                }
+                if("high".startsWith(args[0])) {
+                    return Collections.singletonList("high");
+                }
+                if("ultra".startsWith(args[0])) {
+                    return Collections.singletonList("ultra");
+                }
+            }
+        }
+        return super.onTabComplete(sender, cmd, alias, args);
     }
 
 

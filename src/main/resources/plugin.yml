@@ -1,4 +1,9 @@
 name: LifeStyle
 version: ${project.version}
-main: com.github.tomodq.lifestyle.LifeStyle
+main: net.kunmc.lab.lifestyle.LifeStyle
 api-version: 1.15
+commands:
+  speed-up:
+    description: speed-up command stop 0x, default 1x, high 2x, ultra 10x.
+    usage: /<command> [stop,default,high,ultra]
+    permission: op
