@@ -2,7 +2,7 @@ package net.kunmc.lab.lifestyle;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,54 +16,64 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class LifeStyle extends JavaPlugin{
+    private World world;
+
     @Override
     public void onEnable() {
         // Plugin startup logic
         PlayerEvent playerEvent = new PlayerEvent(this);
-        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+        BukkitScheduler scheduler = getServer().getScheduler();
+        getServer().getOnlinePlayers().forEach(player -> {
+            if(world == null) {
+                world = player.getWorld();
+            }
+            playerEvent.getIsSleep(player);
+            playerEvent.getMessage(player);
+        });
         scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
             public void run() {
-                List<Player> players = playerEvent.getPlayers();
-                World world = playerEvent.getWorld() != null ? playerEvent.getWorld() : null;
-                if(players.size() == 0 || world == null) {
-                    return;
+                if (world != null) {
+                    world.setTime(14000L);
                 }
-                world.setTime(14000L);
-                Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
+                Scoreboard sb = getServer().getScoreboardManager().getMainScoreboard();
                 Objective sleep = sb.getObjective("sleep");
                 Objective awake = sb.getObjective("awake");
-                players.forEach(player -> {
-                    //List<Integer> serverTime = castTime(player.getWorld().getTime());
-                    //player.sendMessage("サーバ: "+ serverTime.get(0) + "時" + serverTime2.get(1) + "分");
+                getServer().getOnlinePlayers().forEach(player -> {
+                    if(world == null) {
+                        world = player.getWorld();
+                        world.setTime(14000L);
+                    }
+                    playerEvent.getIsSleep(player);
+                    playerEvent.getMessage(player);
                     List<Integer> nowTime = castTime(playerEvent.getTime());
                     player.setPlayerTime(playerEvent.getTime(), false);
                     int sleepTime = sleep == null ? 22: sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
                     int awakeTime = awake == null ? 5 : awake.getScore(player.getName()) == null ? 5 : awake.getScore(player.getName()).getScore();
                     playerEvent.setTime();
-                    if(nowTime.get(0) == sleepTime) {
-                        playerEvent.setSleep(player);
-                        setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
+                    if(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+                        setActionBar(nowTime, "サバイバル・アドベンチャーモードでのみ有効", player);
                         return;
                     }
-                    if(nowTime.get(1) == 40) {
+                    if(isSleepTime(nowTime.get(0), sleepTime, awakeTime)) {
+                        playerEvent.setSleep(player);
+                        setActionBar(nowTime, playerEvent.getMessage(player), player);
+                        return;
+                    }
+                    if(nowTime.get(1) >= 30) {
                         if(nowTime.get(0) == 23  && sleepTime == 0) {
                             playerEvent.setDizzy(player);
-                            setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
+                            setActionBar(nowTime, playerEvent.getMessage(player), player);
                             return;
                         }
                         if(nowTime.get(0)  == sleepTime - 1) {
                             playerEvent.setDizzy(player);
-                            setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
+                            setActionBar(nowTime, playerEvent.getMessage(player), player);
                             return;
                         }
                     }
-                    if(nowTime.get(0) == awakeTime) {
-                        playerEvent.setAwake(player);
-                        setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
-                        return;
-                    }
-                    setActionBar(nowTime, playerEvent.getMessage(player.getName()), player);
+                    playerEvent.setAwake(player);
+                    setActionBar(nowTime, playerEvent.getMessage(player), player);
                 });
 
             }
@@ -93,6 +103,16 @@ public final class LifeStyle extends JavaPlugin{
         return times;
     }
 
+    public boolean isSleepTime(int now, int start, int end) {
+        if(start > end && (now >= start || end > now)) {
+            return true;
+        }
+        if(end > start && (now >= start && end > now)) {
+            return true;
+        }
+        return false;
+    }
+
     public void setActionBar(List<Integer> nowTime, String message, Player player) {
         TextComponent component = new TextComponent();
         component.setText(nowTime.get(0) + "時" + nowTime.get(1) + "分" + " <" + message +"§f>");
@@ -107,10 +127,14 @@ public final class LifeStyle extends JavaPlugin{
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         if (cmd.getName().equalsIgnoreCase("speed-up")) {
-            if (args.length == 0 || args.length > 1) {
+            if (args.length != 1) {
                 return false;
             }
-            PlayerEvent.setSpeed(Long.parseLong(args[0]));
+            try {
+                PlayerEvent.setSpeed(Long.parseLong(args[0]));
+            } catch (NumberFormatException e) {
+                return false;
+            }
             sender.sendMessage("経過速度を" + args[0] + "倍に設定しました");
             return true;
         }
