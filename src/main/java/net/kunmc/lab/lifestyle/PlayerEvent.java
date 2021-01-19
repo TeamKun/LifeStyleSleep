@@ -114,7 +114,7 @@ public class PlayerEvent implements Listener {
         setIsSleep(player, true);
         setMessage(player, "§3Zzz");
         player.removePotionEffect(PotionEffectType.CONFUSION);
-        deleteBed(player.getLocation(), 10);
+        deleteBed(player.getLocation());
         player.getLocation().getBlock().setType(Material.BLACK_BED);
         player.sleep(player.getLocation(), true);
     }
@@ -135,7 +135,7 @@ public class PlayerEvent implements Listener {
         player.removePotionEffect(PotionEffectType.CONFUSION);
         setIsSleep(player, false);
         setMessage(player,"§a眠くない");
-        deleteBed(player.getLocation(), 10);
+        deleteBed(player.getLocation());
     }
 
 
@@ -182,36 +182,19 @@ public class PlayerEvent implements Listener {
         return !(player.getPotionEffect(PotionEffectType.NIGHT_VISION) == null);
     }
 
-    public void deleteBed(Location loc, int length) {
-        int x1 = loc.getBlockX();
-        int y1 = loc.getBlockY();
-        int z1 = loc.getBlockZ();
+    public void deleteBed(Location playerLoc) {
+        int r = 20;
+        Location startLoc = playerLoc.subtract(r, r, r);
 
-        int x2 = x1 + length;
-        int y2 = y1 + length;
-        int z2 = z1 + length;
+        for(int i=startLoc.getBlockX(); i<startLoc.getBlockX()+r*2; i++){
+            for(int j=startLoc.getBlockY(); j<startLoc.getBlockY()+r*2; j++){
+                for(int k=startLoc.getBlockZ(); k<startLoc.getBlockZ()+r*2; k++){
+                    Location loc = new Location(startLoc.getWorld(), i, j, k);
+                    Block b = loc.getBlock();
 
-        World world = loc.getWorld();
-        for (int xPoint = x1; xPoint <= x2; xPoint++) {
-            for (int yPoint = y1; yPoint <= y2; yPoint++) {
-                for (int zPoint = z1; zPoint <= z2; zPoint++) {
-                    assert world != null;
-                    Block block = world.getBlockAt(x1, y1, z1);
-                    deleteBedExe(block);
-                    block = world.getBlockAt(x1 - length, y1, z1);
-                    deleteBedExe(block);
-                    block = world.getBlockAt(x1 - length, y1 - length, z1);
-                    deleteBedExe(block);
-                    block = world.getBlockAt(x1 - length, y1, z1 - length);
-                    deleteBedExe(block);
-                    block = world.getBlockAt(x1, y1 - length, z1);
-                    deleteBedExe(block);
-                    block = world.getBlockAt(x1, y1 - length, z1 - length);
-                    deleteBedExe(block);
-                    block = world.getBlockAt(x1, y1, z1 - length);
-                    deleteBedExe(block);
-                    block = world.getBlockAt(x1 - length, y1 - length, z1 - length);
-                    deleteBedExe(block);
+                    if(b.getType() == Material.BLACK_BED){
+                        b.setType(Material.AIR);
+                    }
                 }
             }
         }
