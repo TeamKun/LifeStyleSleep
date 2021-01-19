@@ -19,15 +19,17 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.*;
 
 public class PlayerEvent implements Listener {
-    private Map<String, Boolean> isSleeps;
-    private Map<String, String> messages;
     private Long time;
+    private HashMap<String,Boolean> isSleeps;
+    private HashMap<String, String> messages;
+    private HashMap<String, Character> isInvalids;
 
     private static Long add = 2L;
 
     public PlayerEvent(JavaPlugin plugin) {
         isSleeps = new HashMap<String, Boolean>();
         messages = new HashMap<String, String>();
+        isInvalids = new HashMap<String, Character>();
         time = 0L;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -39,8 +41,14 @@ public class PlayerEvent implements Listener {
             return;
         }
         Player player = (Player) event.getEntity();
+        char isInvalid = getIsInvalid(player);
+        if(isInvalid == '1' || isInvalid == '2') {
+            event.setCancelled(true);
+            return;
+        }
         Boolean isSleep = getIsSleep(player);
         if(isSleep) {
+            setIsInvalid(player, '1');
             player.setHealth(0);
         }
     }
@@ -108,7 +116,7 @@ public class PlayerEvent implements Listener {
 
     public void setSleep(Player player) {
         setIsSleep(player, true);
-        setMessage(player, "Zzz");
+        setMessage(player, "§3Zzz");
         player.removePotionEffect(PotionEffectType.CONFUSION);
         deleteBed(player.getLocation(), 10);
         player.getLocation().getBlock().setType(Material.BLACK_BED);
@@ -123,14 +131,14 @@ public class PlayerEvent implements Listener {
         if(isSleep) {
             return;
         }
-        setMessage(player, "§1眠たい");
+        setMessage(player, "§3眠たい");
         player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION ,1200,0,false));
     }
 
     public void setAwake(Player player) {
         player.removePotionEffect(PotionEffectType.CONFUSION);
         setIsSleep(player, false);
-        setMessage(player,"眠くない");
+        setMessage(player,"§a眠くない");
         deleteBed(player.getLocation(), 10);
     }
 
@@ -151,8 +159,8 @@ public class PlayerEvent implements Listener {
        if(messages.containsKey(player.getName())) {
            return messages.get(player.getName());
        }
-       setMessage(player, "眠くない");
-       return "眠くない";
+       setMessage(player, "§a眠くない");
+       return "§a眠くない";
     }
     public void setMessage(Player player, String message) {
         messages.put(player.getName(), message);
@@ -170,6 +178,18 @@ public class PlayerEvent implements Listener {
         return time;
     }
 
+    public void setIsInvalid(Player player, char isInvalid) {
+        isInvalids.put(player.getName(), isInvalid);
+    }
+
+    public char getIsInvalid(Player player) {
+        if(isInvalids.containsKey(player.getName())) {
+            return isInvalids.get(player.getName());
+        }
+        setIsInvalid(player, '0');
+        return '0';
+    }
+
     public static void setSpeed(Long speed) {
         if(speed > 100L) {
             speed = 100L;
@@ -179,6 +199,10 @@ public class PlayerEvent implements Listener {
 
     public boolean isDizzy(Player player) {
         return !(player.getPotionEffect(PotionEffectType.CONFUSION) == null);
+    }
+
+    public boolean isNightVision(Player player) {
+        return !(player.getPotionEffect(PotionEffectType.NIGHT_VISION) == null);
     }
 
     public void deleteBed(Location loc, int length) {

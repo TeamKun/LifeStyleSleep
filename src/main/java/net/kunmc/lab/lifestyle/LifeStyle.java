@@ -29,6 +29,7 @@ public final class LifeStyle extends JavaPlugin{
             }
             playerEvent.getIsSleep(player);
             playerEvent.getMessage(player);
+            playerEvent.getIsInvalid(player);
         });
         scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
@@ -46,6 +47,7 @@ public final class LifeStyle extends JavaPlugin{
                     }
                     playerEvent.getIsSleep(player);
                     playerEvent.getMessage(player);
+                    playerEvent.getIsInvalid(player);
                     List<Integer> nowTime = castTime(playerEvent.getTime());
                     player.setPlayerTime(playerEvent.getTime(), false);
                     int sleepTime = sleep == null ? 22: sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
@@ -53,6 +55,16 @@ public final class LifeStyle extends JavaPlugin{
                     playerEvent.setTime();
                     if(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
                         setActionBar(nowTime, "サバイバル・アドベンチャーモードでのみ有効", player);
+                        return;
+                    }
+                    if(playerEvent.isNightVision(player)) {
+                        playerEvent.setIsInvalid(player, '2');
+                    } else if(playerEvent.getIsInvalid(player) != '1') {
+                        playerEvent.setIsInvalid(player, '0');
+                    }
+                    if((playerEvent.getIsInvalid(player) == '1'  && isSleepTime(nowTime.get(0), sleepTime, awakeTime)) || playerEvent.getIsInvalid(player) == '2') {
+                        playerEvent.setAwake(player);
+                        setActionBar(nowTime, playerEvent.getMessage(player) + "§6★無敵", player);
                         return;
                     }
                     if(isSleepTime(nowTime.get(0), sleepTime, awakeTime)) {
@@ -73,6 +85,7 @@ public final class LifeStyle extends JavaPlugin{
                         }
                     }
                     playerEvent.setAwake(player);
+                    playerEvent.setIsInvalid(player, '0');
                     setActionBar(nowTime, playerEvent.getMessage(player), player);
                 });
 
