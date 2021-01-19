@@ -13,10 +13,14 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class LifeStyle extends JavaPlugin{
     private World world;
+    private Long time = 0L;
+    private Long add = 2L;
 
     @Override
     public void onEnable() {
@@ -48,11 +52,11 @@ public final class LifeStyle extends JavaPlugin{
                     playerEvent.getIsSleep(player);
                     playerEvent.getMessage(player);
                     playerEvent.getIsInvalid(player);
-                    List<Integer> nowTime = castTime(playerEvent.getTime());
-                    player.setPlayerTime(playerEvent.getTime(), false);
+                    List<Integer> nowTime = castTime(getTime());
+                    player.setPlayerTime(getTime(), false);
                     int sleepTime = sleep == null ? 22: sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
                     int awakeTime = awake == null ? 5 : awake.getScore(player.getName()) == null ? 5 : awake.getScore(player.getName()).getScore();
-                    playerEvent.setTime();
+                    setTime();
                     if(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
                         setActionBar(nowTime, "サバイバル・アドベンチャーモードでのみ有効", player);
                         return;
@@ -132,6 +136,29 @@ public final class LifeStyle extends JavaPlugin{
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
     }
 
+    public void setTime() {
+        if(time >= 24000L) {
+            time = 0L;
+            return;
+        }
+        time += add;
+    }
+
+    public void setTimeAbout(Long timeAbout) {
+        time = timeAbout;
+    }
+
+    public Long getTime() {
+        return time;
+    }
+
+    public void setSpeed(Long speed) {
+        if(speed > 100L) {
+            speed = 100L;
+        }
+        add = 2L * speed;
+    }
+
     @Override
     public void onDisable() {
         // Plugin shutdown logic
@@ -144,15 +171,73 @@ public final class LifeStyle extends JavaPlugin{
                 return false;
             }
             try {
-                PlayerEvent.setSpeed(Long.parseLong(args[0]));
+                setSpeed(Long.parseLong(args[0]));
             } catch (NumberFormatException e) {
                 return false;
             }
             sender.sendMessage("経過速度を" + args[0] + "倍に設定しました");
             return true;
         }
+        if(cmd.getName().equalsIgnoreCase("time")) {
+            if(args.length < 2) {
+                return false;
+            }
+            if(args[0].equalsIgnoreCase("set")) {
+                if(args[1].equalsIgnoreCase("day")) {
+                    setTimeAbout(1000L);
+                    return true;
+                }
+                if(args[1].equalsIgnoreCase("sunset")) {
+                    setTimeAbout(12000L);
+                    return true;
+                }
+                if(args[1].equalsIgnoreCase("night")) {
+                    setTimeAbout(13000L);
+                    return true;
+                }
+                if(args[1].equalsIgnoreCase("sunrise")) {
+                    setTimeAbout(23000L);
+                    return true;
+                }
+                return false;
+            }
+        }
         return false;
     }
 
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+        if(cmd.getName().equalsIgnoreCase("speed-up")) {
+            if(args.length == 1) {
+                return Collections.singletonList("数値");
+            }
+        }
+        if(cmd.getName().equalsIgnoreCase("time")) {
+            if(args.length == 1) {
+                return Collections.singletonList("set");
+            }
+            if(args.length == 2 && args[0].equalsIgnoreCase("set")) {
+                if(args[1].length() == 0) {
+                    return Arrays.asList("day", "sunset", "night", "sunrise");
+                } else {
+                    if("day".startsWith(args[1])) {
+                        return Collections.singletonList("day");
+                    }
+                    if("night".startsWith(args[1])) {
+                        return Collections.singletonList("night");
+                    }
+                    if(args[1].length() == 4) {
+                        if("sunset".startsWith(args[1])) {
+                            return Collections.singletonList("sunset");
+                        }
+                        if("sunrise".startsWith(args[1])) {
+                            return Collections.singletonList("sunrise");
+                        }
+                    }
+                }
+            }
+        }
+        return super.onTabComplete(sender, cmd, label, args);
+    }
 
 }

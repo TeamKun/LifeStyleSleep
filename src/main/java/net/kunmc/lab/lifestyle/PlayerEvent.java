@@ -19,18 +19,14 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.*;
 
 public class PlayerEvent implements Listener {
-    private Long time;
     private HashMap<String,Boolean> isSleeps;
     private HashMap<String, String> messages;
     private HashMap<String, Character> isInvalids;
-
-    private static Long add = 2L;
 
     public PlayerEvent(JavaPlugin plugin) {
         isSleeps = new HashMap<String, Boolean>();
         messages = new HashMap<String, String>();
         isInvalids = new HashMap<String, Character>();
-        time = 0L;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -166,18 +162,6 @@ public class PlayerEvent implements Listener {
         messages.put(player.getName(), message);
     }
 
-    public void setTime() {
-        if(this.time >= 24000L) {
-            this.time = 0L;
-            return;
-        }
-        this.time += add;
-    }
-
-    public Long getTime() {
-        return time;
-    }
-
     public void setIsInvalid(Player player, char isInvalid) {
         isInvalids.put(player.getName(), isInvalid);
     }
@@ -188,13 +172,6 @@ public class PlayerEvent implements Listener {
         }
         setIsInvalid(player, '0');
         return '0';
-    }
-
-    public static void setSpeed(Long speed) {
-        if(speed > 100L) {
-            speed = 100L;
-        }
-        add = 2L * speed;
     }
 
     public boolean isDizzy(Player player) {
