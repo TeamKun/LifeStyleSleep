@@ -54,8 +54,16 @@ public final class LifeStyle extends JavaPlugin{
                     playerEvent.getIsInvalid(player);
                     List<Integer> nowTime = castTime(getTime());
                     player.setPlayerTime(getTime(), false);
-                    int sleepTime = sleep == null ? 22: sleep.getScore(player.getName()) == null ? 22 : sleep.getScore(player.getName()).getScore();
-                    int awakeTime = awake == null ? 5 : awake.getScore(player.getName()) == null ? 5 : awake.getScore(player.getName()).getScore();
+                    int sleepTime = 22;
+                    int awakeTime = 5;
+                    if(sleep != null && awake != null) {
+                        sleepTime = sleep.getScore(player.getName()).getScore();
+                        awakeTime = awake.getScore(player.getName()).getScore();
+                        if((sleepTime == awakeTime) || 0 > sleepTime || sleepTime > 23  || 0 > awakeTime || awakeTime > 23) {
+                            sleepTime = 22;
+                            awakeTime = 5;
+                        }
+                    }
                     setTime();
                     if(player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
                         setActionBar(nowTime, "サバイバル・アドベンチャーモードでのみ有効", player);
